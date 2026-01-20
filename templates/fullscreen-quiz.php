@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) exit;
 
 $topic = sanitize_text_field($_GET['topic'] ?? '');
 $timer = intval($_GET['timer'] ?? 15);
-$random = intval($_GET['random'] ?? 0);
+$random = intval($_GET['random'] ?? 1);
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -16,10 +16,6 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
 ?>
     <div class="question" style="display:none">
         <h1><?= ($key + 1) ?>. <?= $q_question ?></h1>
-
-
-        
-
       
         <div class="col-12 mt-5">
             <div class="accordion_custom accordion accordion-flush border border-secondary" id="#accordionFlush_<?php echo $key; ?>">
