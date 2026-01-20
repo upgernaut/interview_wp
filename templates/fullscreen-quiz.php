@@ -23,7 +23,7 @@ html, body {
 #quiz-wrapper {
     max-width: 800px;
     width: 100%;
-    margin: 100px auto 0; /* top margin 100px, horizontally centered */
+    margin: 0 auto; /* top margin 100px, horizontally centered */
     padding: 20px;
     background: #fff;
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
