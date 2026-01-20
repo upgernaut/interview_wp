@@ -103,4 +103,24 @@ add_action('save_post', function($post_id) {
 });
 
 
+// Make plugin template visible in WP Page editor
+add_filter('theme_page_templates', function($templates) {
+    $templates['fullscreen-quiz.php'] = 'Fullscreen Quiz (Plugin)';
+    return $templates;
+});
+
+// Load the plugin template when selected
+add_filter('template_include', function($template) {
+    global $post;
+    if (!$post) return $template;
+
+    $selected_template = get_post_meta($post->ID, '_wp_page_template', true);
+    if ($selected_template === 'fullscreen-quiz.php') {
+        return plugin_dir_path(__FILE__) . 'templates/fullscreen-quiz.php';
+    }
+
+    return $template;
+});
+
+
 require_once plugin_dir_path(__FILE__) . 'includes/shortcode.php';
