@@ -9,3 +9,14 @@ http://iww.loc/full-screen-quiz/?topic=project-management&timer=20&random=1
 
 Library page can be entered like this  
 [http://iww.loc/interview-library/?topic=php]
+
+Also there is an importer in the admin
+
+Enter each post separated by ===QUESTION===.
+First line = question/title (meta), remaining lines = answer/content.
+Supports HTML, Markdown, lists, code blocks, etc.
+
+Example:
+===QUESTION===
+What is PHP?
+PHP is a server-side scripting language used to build dynamic websites.
