@@ -72,4 +72,35 @@ add_action('admin_menu', function () {
 });
 
 
+add_action('add_meta_boxes', function() {
+    add_meta_box(
+        'interview_question_field',
+        'Question',
+        function($post) {
+            $content = get_post_meta($post->ID, '_interview_question', true);
+            wp_editor(
+                $content,                  // Current content
+                'interview_question_meta',  // HTML ID & name
+                [
+                    'textarea_name' => 'interview_question_meta',
+                    'textarea_rows' => 10,
+                    'media_buttons' => true, // optional, allows adding images
+                    'teeny' => false,        // full editor
+                ]
+            );
+        },
+        'interview_question',
+        'normal',
+        'high'
+    );
+});
+
+add_action('save_post', function($post_id) {
+    if (isset($_POST['interview_question_meta'])) {
+        // Allow HTML, do minimal sanitization
+        update_post_meta($post_id, '_interview_question', wp_kses_post($_POST['interview_question_meta']));
+    }
+});
+
+
 require_once plugin_dir_path(__FILE__) . 'includes/shortcode.php';

@@ -10,11 +10,13 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
 <?php foreach ($items as $key => $post_id): 
     $post = get_post($post_id);
     if (!$post) continue; // safety
-    $q_title = get_the_title($post);
+    $q_question = get_post_meta($post_id, '_interview_question', true);
+
     $q_content = apply_filters('the_content', $post->post_content);
 ?>
     <div class="question" style="display:none">
-        <h1><?= ($key + 1) ?>. <?= esc_html($q_title) ?></h1>
+        <h1><?= ($key + 1) ?>. <?= $q_question ?></h1>
+
 
         <div class="accordion mt-3" id="accordion_<?= $key ?>">
             <div class="accordion-item">
