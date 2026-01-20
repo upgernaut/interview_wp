@@ -123,4 +123,21 @@ add_filter('template_include', function($template) {
 });
 
 
+// Register the new template so WP can see it
+add_filter('theme_page_templates', function($templates){
+    $templates['interview-library.php'] = 'Interview Library (Plugin)';
+    return $templates;
+});
+
+// Load the template if assigned
+add_filter('template_include', function($template){
+    global $post;
+    if(!$post) return $template;
+    if(get_post_meta($post->ID, '_wp_page_template', true) === 'interview-library.php'){
+        return plugin_dir_path(__FILE__) . 'templates/interview-library.php';
+    }
+    return $template;
+});
+
+
 require_once plugin_dir_path(__FILE__) . 'includes/shortcode.php';
