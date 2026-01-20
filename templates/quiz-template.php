@@ -18,20 +18,26 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
         <h1><?= ($key + 1) ?>. <?= $q_question ?></h1>
 
 
-        <div class="accordion mt-3" id="accordion_<?= $key ?>">
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_<?= $key ?>" aria-expanded="false">
-                        Answer
-                    </button>
-                </h2>
-                <div id="collapse_<?= $key ?>" class="accordion-collapse collapse" data-bs-parent="#accordion_<?= $key ?>">
-                    <div class="accordion-body">
-                        <?= $q_content ?>
+        
+
+      
+        <div class="col-12 mt-5">
+            <div class="accordion_custom accordion accordion-flush border border-secondary" id="#accordionFlush_<?php echo $key; ?>">
+                <div class="accordion-item">
+                    <h2 class="accordion-header text-center">
+                        <button class="accordion-button collapsed text-center" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse_<?php echo $key; ?>" aria-expanded="false" aria-controls="flush-collapse_<?php echo $key; ?>">
+                            Hint
+                        </button>
+                    </h2>
+                    <div id="flush-collapse_<?php echo $key; ?>" class="accordion-collapse collapse" data-bs-parent="#accordionFlush_<?php echo $key; ?>">
+                        <div class="accordion-body  text-start fs-4"><?= $q_content ?></div>
                     </div>
                 </div>
             </div>
         </div>
+
+
+
     </div>
 <?php endforeach; ?>
 

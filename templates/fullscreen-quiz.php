@@ -25,12 +25,15 @@ html, body {
     width: 100%;
     margin: 0 auto; /* top margin 100px, horizontally centered */
     padding: 20px;
-    background: #fff;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    /* background: #fff; */
+    /* box-shadow: 0 5px 20px rgba(0,0,0,0.1); */
     border-radius: 12px;
 }
+.accordion-flush .accordion-item .accordion-button, .accordion-flush .accordion-item .accordion-button.collapsed {
+    border-radius: 0;
+}
 </style>
-<?php wp_head(); ?>
+<?php // wp_head(); ?>
 </head>
 <body>
 
@@ -41,6 +44,6 @@ html, body {
     ?>
 </div>
 
-<?php wp_footer(); ?>
+<?php // wp_footer(); ?>
 </body>
 </html>
