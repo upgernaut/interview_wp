@@ -72,6 +72,47 @@ add_action('admin_menu', function () {
 });
 
 
+// Add topic filter dropdown
+add_action('restrict_manage_posts', function ($post_type) {
+    if ($post_type !== 'interview_question') return;
+
+    $taxonomy = 'topic';
+    $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
+
+    if (empty($terms)) return;
+
+    $current = $_GET[$taxonomy] ?? '';
+
+    echo '<select name="'.$taxonomy.'">';
+    echo '<option value="">All Topics</option>';
+    foreach ($terms as $term) {
+        printf(
+            '<option value="%s"%s>%s</option>',
+            esc_attr($term->slug),
+            selected($current, $term->slug, false),
+            esc_html($term->name)
+        );
+    }
+    echo '</select>';
+});
+
+// Apply filter to query
+add_action('pre_get_posts', function ($query) {
+    if (!is_admin() || !$query->is_main_query()) return;
+
+    if ($query->get('post_type') !== 'interview_question') return;
+
+    if (!empty($_GET['topic'])) {
+        $query->set('tax_query', [[
+            'taxonomy' => 'topic',
+            'field' => 'slug',
+            'terms' => sanitize_text_field($_GET['topic']),
+        ]]);
+    }
+});
+
+
+
 add_action('add_meta_boxes', function() {
     add_meta_box(
         'interview_question_field',
