@@ -7,7 +7,9 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
 <div id="quizContainer">
-<?php foreach ($items as $key => $post_id): 
+<?php 
+$items_count = count($items);
+foreach ($items as $key => $post_id): 
     $post = get_post($post_id);
     if (!$post) continue; // safety
     $q_question = get_post_meta($post_id, '_interview_question', true);
@@ -15,7 +17,9 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
     $q_content = apply_filters('the_content', $post->post_content);
 ?>
     <div class="question" style="display:none">
-        <h1><?= ($key + 1) ?>. <?= $q_question ?></h1>
+<?php /*         <h1><?= ($key + 1) ?>. <?= $q_question ?></h1> */ ?>	
+		<div><?= ($key + 1) ?>/<?= $items_count ?></div>
+        <h1><?= $q_question ?></h1>
       
         <div class="col-12 mt-5">
             <div class="accordion_custom accordion accordion-flush border border-secondary" id="#accordionFlush_<?php echo $key; ?>">
