@@ -1,6 +1,5 @@
 <?php
 
-/////////////---
 add_action('admin_menu', function() {
     add_submenu_page(
         'edit.php?post_type=interview_question',
@@ -19,41 +18,28 @@ function import_questions_page() {
         $topic_id = intval($_POST['topic']);
         $data = wp_unslash($_POST['import_data']); // keep HTML intact
 
-        // Split by delimiter
-        $posts = array_filter(array_map('trim', explode('===QUESTION===', $data)));
+        // Split by <h2> tags
+        preg_match_all('/<h2>(.*?)<\/h2>/is', $data, $matches, PREG_OFFSET_CAPTURE);
+
         $imported = 0;
 
-        foreach ($posts as $post_block) {
-            if (!$post_block) continue;
+        for ($i = 0; $i < count($matches[0]); $i++) {
+            $title = trim($matches[1][$i][0]);
+            $start = $matches[0][$i][1] + strlen($matches[0][$i][0]);
+            $end = isset($matches[0][$i+1]) ? $matches[0][$i+1][1] : strlen($data);
+            $content = trim(substr($data, $start, $end - $start));
 
-            // Split into lines
-            $lines = array_map('trim', explode("\n", $post_block));
-
-            // First non-empty line = question/title
-            $question = '';
-            $answer_lines = [];
-            foreach ($lines as $i => $line) {
-                if ($line === '') continue;
-                if ($question === '') {
-                    $question = $line;
-                } else {
-                    $answer_lines[] = $line;
-                }
-            }
-
-            if (!$question) continue;
-
-$answer = html_entity_decode(implode("\n", $answer_lines), ENT_QUOTES | ENT_HTML5);
+            if (!$title) continue;
 
             $post_id = wp_insert_post([
                 'post_type'    => 'interview_question',
-                'post_title'   => wp_strip_all_tags($question),
-                'post_content' => $answer,
+                'post_title'   => wp_strip_all_tags($title),
+                'post_content' => $content,
                 'post_status'  => 'publish',
             ]);
 
             if ($post_id && !is_wp_error($post_id)) {
-                update_post_meta($post_id, '_interview_question', $question);
+                update_post_meta($post_id, '_interview_question', $title);
                 if ($topic_id) wp_set_object_terms($post_id, [$topic_id], 'topic');
                 $imported++;
             }
@@ -62,7 +48,6 @@ $answer = html_entity_decode(implode("\n", $answer_lines), ENT_QUOTES | ENT_HTML
         echo '<div class="notice notice-success"><p>Imported '.$imported.' questions.</p></div>';
     }
 
-    // Get all topics
     $topics = get_terms(['taxonomy' => 'topic', 'hide_empty' => false]);
     ?>
     <div class="wrap">
@@ -81,28 +66,18 @@ $answer = html_entity_decode(implode("\n", $answer_lines), ENT_QUOTES | ENT_HTML
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row">Questions (use ===QUESTION=== as delimiter)</th>
+                    <th scope="row">Questions (use &lt;h2&gt; as delimiter)</th>
                     <td>
                         <textarea name="import_data" rows="20" cols="80" style="width:100%;"></textarea>
                         <p class="description">
-                            Enter each post separated by <strong>===QUESTION===</strong>. <br>
-                            First line = question/title (meta), remaining lines = answer/content. <br>
-                            Supports HTML, Markdown, lists, code blocks, etc. <br><br>
-                            <strong>Example:</strong><br>
-                            ===QUESTION===<br>
-                            What is PHP?<br>
-                            PHP is a server-side scripting language used to build dynamic websites.<br><br>
-                            ===QUESTION===<br>
-                            What is WordPress?<br>
-                            WordPress is a CMS built on PHP and MySQL. It allows creating websites quickly and efficiently.<br><br>
-                            ===QUESTION===<br>
-                            How to debug PHP?<br>
-                            Common techniques include:<br>
-                            1. var_dump() and print_r()<br>
-                            2. Error logs<br>
-                            3. Using Xdebug for step debugging
+                            Each question starts with <strong>&lt;h2&gt;</strong>Title&lt;/h2&gt;. <br>
+                            The heading becomes the post title, rest is content until next <strong>&lt;h2&gt;</strong>. <br>
+                            Example:<br>
+                            &lt;h2&gt;What is PHP?&lt;/h2&gt;<br>
+                            PHP is a server-side scripting language.<br><br>
+                            &lt;h2&gt;What is WordPress?&lt;/h2&gt;<br>
+                            WordPress is a CMS built on PHP and MySQL.
                         </p>
-
                     </td>
                 </tr>
             </table>
