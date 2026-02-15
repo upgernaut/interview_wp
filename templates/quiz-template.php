@@ -49,6 +49,7 @@ foreach ($items as $key => $post_id):
     <button id="nextButton" class="btn btn-primary mx-2">Next question</button>
     <button id="resetButton" class="btn btn-danger mx-2">Reset</button>
 </div>
+
 <script>
 const questions = Array.from(document.querySelectorAll('.question'));
 const nextButton = document.getElementById('nextButton');
@@ -58,6 +59,7 @@ const timerEl = document.getElementById('timer');
 
 const QUIZ_TOPIC = "<?= esc_js($atts['topic']) ?>";
 const TIMER_DURATION = <?= $TIMER_DURATION ?>;
+const QUIZ_RANDOM = <?= (int)$atts['random'] ?>;
 
 const STORAGE_IDX_KEY   = 'quiz_idx_' + QUIZ_TOPIC;
 const STORAGE_ORDER_KEY = 'quiz_order_' + QUIZ_TOPIC;
@@ -76,7 +78,10 @@ let questionOrder   = JSON.parse(localStorage.getItem(STORAGE_ORDER_KEY));
 // First visit or after reset
 if (!questionOrder || questionOrder.length !== questions.length) {
     questionOrder = questions.map((_, i) => i);       // 0..N-1
-    questionOrder.sort(() => Math.random() - 0.5);    // shuffle once
+    
+    if (QUIZ_RANDOM === 1) {
+        questionOrder.sort(() => Math.random() - 0.5);    // shuffle once
+    }
     localStorage.setItem(STORAGE_ORDER_KEY, JSON.stringify(questionOrder));
 }
 
