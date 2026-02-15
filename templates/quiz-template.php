@@ -18,7 +18,7 @@ foreach ($items as $key => $post_id):
 ?>
     <div class="question" style="display:none">
 <?php /*         <h1><?= ($key + 1) ?>. <?= $q_question ?></h1> */ ?>	
-		<div><?= ($key + 1) ?>/<?= $items_count ?></div>
+		<div class="question-counter"></div>
         <h1><?= $q_question ?></h1>
       
         <div class="col-12 mt-5">
@@ -57,13 +57,12 @@ const resetButton = document.getElementById('resetButton');
 const timerEl = document.getElementById('timer');
 
 const QUIZ_TOPIC = "<?= esc_js($atts['topic']) ?>";
-
-
-let timerInterval;
 const TIMER_DURATION = <?= $TIMER_DURATION ?>;
 
-const STORAGE_IDX_KEY = 'quiz_idx';
-const STORAGE_ORDER_KEY = 'quiz_order';
+const STORAGE_IDX_KEY   = 'quiz_idx_' + QUIZ_TOPIC;
+const STORAGE_ORDER_KEY = 'quiz_order_' + QUIZ_TOPIC;
+
+let timerInterval;
 
 // Add data-id to each question for mapping
 questions.forEach((q, i) => q.dataset.id = i);
@@ -71,25 +70,19 @@ questions.forEach((q, i) => q.dataset.id = i);
 // ----------------------
 // Restore saved state
 // ----------------------
-let currentQuestion = parseInt(localStorage.getItem(STORAGE_IDX_KEY));
-if (isNaN(currentQuestion)) currentQuestion = 0;
+let currentQuestion = parseInt(localStorage.getItem(STORAGE_IDX_KEY)) || 0;
+let questionOrder   = JSON.parse(localStorage.getItem(STORAGE_ORDER_KEY));
 
-let questionOrder = JSON.parse(localStorage.getItem(STORAGE_ORDER_KEY) || 'null');
-// If no saved order, initialize once
-// alert(questions.length !== questionOrder.length);
-// alert(currentQuestion);
-
+// First visit or after reset
 if (!questionOrder || questionOrder.length !== questions.length) {
-    questionOrder = questions.map((_, i) => i);
-
+    questionOrder = questions.map((_, i) => i);       // 0..N-1
+    questionOrder.sort(() => Math.random() - 0.5);    // shuffle once
     localStorage.setItem(STORAGE_ORDER_KEY, JSON.stringify(questionOrder));
 }
-
 
 // Reorder DOM according to saved order
 const container = document.getElementById('quizContainer');
 questionOrder.forEach(i => container.appendChild(questions[i]));
-
 const orderedQuestions = questionOrder.map(i => questions[i]);
 
 // ----------------------
@@ -125,11 +118,18 @@ function updateNextButtonText() {
 function showQuestion() {
     questions.forEach(q => q.style.display = 'none');
     if (!orderedQuestions[currentQuestion]) return;
+
     orderedQuestions[currentQuestion].style.display = 'block';
+
+    // Update counter: 1-based
+    const counterEl = orderedQuestions[currentQuestion].querySelector('.question-counter');
+    counterEl.textContent = (currentQuestion + 1) + '/' + orderedQuestions.length;
+
     localStorage.setItem(STORAGE_IDX_KEY, currentQuestion);
     startTimer(TIMER_DURATION);
     updateNextButtonText();
 }
+
 
 // ----------------------
 // Next / Prev / Reset
@@ -163,23 +163,10 @@ prevButton.onclick = () => {
 
 resetButton.onclick = () => {
     clearInterval(timerInterval);
-
     localStorage.removeItem(STORAGE_IDX_KEY);
     localStorage.removeItem(STORAGE_ORDER_KEY);
-    localStorage.clear();
-
-    fetch("<?= admin_url('admin-ajax.php') ?>", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-            action: "quiz_reset",
-            topic: "<?= esc_js($atts['topic']) ?>"
-        })
-    }).then(() => {
-        location.reload();
-    });
+    location.reload();
 };
-
 
 // ----------------------
 // Keyboard navigation
