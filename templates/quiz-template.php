@@ -168,6 +168,7 @@ prevButton.onclick = () => {
 
 resetButton.onclick = () => {
     clearInterval(timerInterval);
+    if(!confirm('Are you sure you want to reset the quiz?')) return;
     localStorage.removeItem(STORAGE_IDX_KEY);
     localStorage.removeItem(STORAGE_ORDER_KEY);
     location.reload();
