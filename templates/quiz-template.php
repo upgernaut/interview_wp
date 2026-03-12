@@ -397,6 +397,7 @@ function showQuizResults() {
     timerEl.textContent = '';
     nextButton.style.display = 'none';
     prevButton.style.display = 'none';
+    resetButton.style.display = 'none'; // Hide reset button too
     
     const stats = calculateStatistics();
     const questionDetails = generateQuestionDetails();

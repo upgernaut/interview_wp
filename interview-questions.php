@@ -250,6 +250,56 @@ add_action('add_meta_boxes', function() {
         'normal',
         'high'
     );
+    
+    // Test Results meta boxes
+    add_meta_box(
+        'test_result_stats',
+        'Test Statistics',
+        function($post) {
+            $stats = get_post_meta($post->ID, '_test_stats', true);
+            echo '<div style="max-height: 300px; overflow-y: auto;">';
+            echo '<pre>' . esc_html(print_r($stats, true)) . '</pre>';
+            echo '</div>';
+        },
+        'iq_test_result',
+        'normal',
+        'default'
+    );
+    
+    add_meta_box(
+        'test_result_details',
+        'Question Details',
+        function($post) {
+            $details = get_post_meta($post->ID, '_test_question_details', true);
+            echo '<div style="max-height: 400px; overflow-y: auto;">';
+            echo '<pre>' . esc_html(print_r($details, true)) . '</pre>';
+            echo '</div>';
+        },
+        'iq_test_result',
+        'normal',
+        'default'
+    );
+    
+    add_meta_box(
+        'test_result_info',
+        'Test Information',
+        function($post) {
+            $topic = get_post_meta($post->ID, '_test_topic', true);
+            $timer_duration = get_post_meta($post->ID, '_test_timer_duration', true);
+            $test_date = get_post_meta($post->ID, '_test_date', true);
+            $user_id = get_post_meta($post->ID, '_user_id', true);
+            $guest_id = get_post_meta($post->ID, '_guest_id', true);
+            
+            echo '<p><strong>Topic:</strong> ' . esc_html($topic) . '</p>';
+            echo '<p><strong>Timer Duration:</strong> ' . esc_html($timer_duration) . ' seconds</p>';
+            echo '<p><strong>Test Date:</strong> ' . esc_html($test_date) . '</p>';
+            echo '<p><strong>User ID:</strong> ' . ($user_id ? esc_html($user_id) : 'Guest') . '</p>';
+            echo '<p><strong>Guest ID:</strong> ' . ($guest_id ? esc_html($guest_id) : 'N/A') . '</p>';
+        },
+        'iq_test_result',
+        'side',
+        'default'
+    );
 });
 
 add_action('save_post', function($post_id) {
