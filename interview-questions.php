@@ -20,6 +20,19 @@ add_action('init', function () {
         'has_archive' => false,
     ]);
 
+    // Test Results CPT
+    register_post_type('iq_test_result', [
+        'label' => 'IQ Test Results',
+        'public' => true,
+        'show_ui' => true,
+        'show_in_menu' => false, // We'll add menu manually
+        'supports' => ['title'],
+        'has_archive' => false,
+        'publicly_queryable' => true,
+        'show_in_rest' => true,
+        'rewrite' => ['slug' => 'test-result'],
+    ]);
+
     // Taxonomy
     register_taxonomy('topic', 'interview_question', [
         'label' => 'Topics',
@@ -51,6 +64,15 @@ add_action('admin_menu', function () {
         'Topics',
         'manage_options',
         'edit-tags.php?taxonomy=topic&post_type=interview_question'
+    );
+
+    // Submenu: Test Results
+    add_submenu_page(
+        'edit.php?post_type=interview_question',
+        'Test Results',
+        'Test Results',
+        'manage_options',
+        'edit.php?post_type=iq_test_result'
     );
 
     // Submenu: Settings
@@ -111,7 +133,101 @@ add_action('pre_get_posts', function ($query) {
     }
 });
 
+// Add rewrite rules for test results
+add_action('init', function() {
+    add_rewrite_rule(
+        '^test-result/([^/]+)/?$',
+        'index.php?post_type=iq_test_result&name=$matches[1]',
+        'top'
+    );
+});
 
+// Flush rewrite rules on plugin activation
+register_activation_hook(__FILE__, function() {
+    flush_rewrite_rules();
+});
+
+// Custom template for test results
+add_filter('template_include', function($template) {
+    if (get_query_var('post_type') === 'iq_test_result') {
+        return plugin_dir_path(__FILE__) . 'templates/test-result-view.php';
+    }
+    return $template;
+});
+
+// Guest tracking functionality
+function get_or_create_guest_id() {
+    if (!isset($_COOKIE['iq_guest_id'])) {
+        $guest_id = wp_generate_uuid4();
+        setcookie('iq_guest_id', $guest_id, time() + (365 * 24 * 60 * 60), '/', '', false, true); // 1 year, HTTP only, secure
+        return $guest_id;
+    }
+    return sanitize_text_field($_COOKIE['iq_guest_id']);
+}
+
+// AJAX handler for saving test results
+add_action('wp_ajax_save_test_result', 'save_test_result_handler');
+add_action('wp_ajax_nopriv_save_test_result', 'save_test_result_handler');
+
+function save_test_result_handler() {
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'save_test_result')) {
+        wp_send_json_error('Invalid nonce');
+    }
+
+    $topic = sanitize_text_field($_POST['topic'] ?? '');
+    $stats = json_decode(stripslashes($_POST['stats'] ?? '{}'), true);
+    $question_details = json_decode(stripslashes($_POST['question_details'] ?? '[]'), true);
+    $timer_duration = intval($_POST['timer_duration'] ?? 15);
+
+    if (empty($topic) || empty($stats)) {
+        wp_send_json_error('Missing required data');
+    }
+
+    // Create test result post
+    $post_data = [
+        'post_title' => 'Test Result - ' . $topic . ' - ' . date('Y-m-d H:i:s'),
+        'post_status' => 'publish',
+        'post_type' => 'iq_test_result',
+    ];
+
+    $post_id = wp_insert_post($post_data);
+
+    if ($post_id && !is_wp_error($post_id)) {
+        // Save all test data as meta
+        update_post_meta($post_id, '_test_topic', $topic);
+        update_post_meta($post_id, '_test_timer_duration', $timer_duration);
+        update_post_meta($post_id, '_test_stats', $stats);
+        update_post_meta($post_id, '_test_question_details', $question_details);
+        update_post_meta($post_id, '_test_date', current_time('mysql'));
+
+        // User/guest tracking
+        if (is_user_logged_in()) {
+            update_post_meta($post_id, '_user_id', get_current_user_id());
+        } else {
+            update_post_meta($post_id, '_guest_id', get_or_create_guest_id());
+        }
+
+        wp_send_json_success([
+            'post_id' => $post_id,
+            'permalink' => get_permalink($post_id)
+        ]);
+    } else {
+        wp_send_json_error('Failed to create test result');
+    }
+}
+
+add_action('wp_ajax_quiz_reset', 'quiz_reset_handler');
+add_action('wp_ajax_nopriv_quiz_reset', 'quiz_reset_handler');
+
+function quiz_reset_handler() {
+    session_start();
+    $topic = sanitize_text_field($_POST['topic'] ?? '');
+    if ($topic) {
+        unset($_SESSION['quiz_order_' . $topic]);
+    }
+    wp_send_json_success();
+}
 
 add_action('add_meta_boxes', function() {
     add_meta_box(
@@ -147,6 +263,7 @@ add_action('save_post', function($post_id) {
 // Make plugin template visible in WP Page editor
 add_filter('theme_page_templates', function($templates) {
     $templates['fullscreen-quiz.php'] = 'Fullscreen Quiz (Plugin)';
+    $templates['test-result-view.php'] = 'Test Result View (Plugin)';
     return $templates;
 });
 
@@ -158,6 +275,9 @@ add_filter('template_include', function($template) {
     $selected_template = get_post_meta($post->ID, '_wp_page_template', true);
     if ($selected_template === 'fullscreen-quiz.php') {
         return plugin_dir_path(__FILE__) . 'templates/fullscreen-quiz.php';
+    }
+    if ($selected_template === 'test-result-view.php') {
+        return plugin_dir_path(__FILE__) . 'templates/test-result-view.php';
     }
 
     return $template;

@@ -387,15 +387,69 @@ function showQuizResults() {
     prevButton.style.display = 'none';
     
     const stats = calculateStatistics();
-    const resultsHTML = generateResultsHTML(stats);
+    const questionDetails = generateQuestionDetails();
     
-    document.getElementById('quizContainer').innerHTML = resultsHTML;
+    // Save test result via AJAX
+    saveTestResult(stats, questionDetails);
+}
+
+function generateQuestionDetails() {
+    const details = [];
+    orderedQuestions.forEach((question, index) => {
+        const questionId = question.dataset.id;
+        const questionText = question.querySelector('h1').textContent;
+        const status = answerStatus[questionId] || "didn't-answer";
+        const timing = questionTiming[questionId] || 0;
+        
+        details.push({
+            question: questionText,
+            status: status,
+            timing: timing,
+            timer_duration: TIMER_DURATION
+        });
+    });
+    return details;
+}
+
+function saveTestResult(stats, questionDetails) {
+    // Create nonce
+    const nonce = '<?php echo wp_create_nonce("save_test_result"); ?>';
     
-    // Clear storage only when quiz is finished
-    localStorage.removeItem(STORAGE_IDX_KEY);
-    localStorage.removeItem(STORAGE_ORDER_KEY);
-    localStorage.removeItem(STORAGE_ANSWERS_KEY);
-    localStorage.removeItem(STORAGE_TIMING_KEY);
+    const data = {
+        action: 'save_test_result',
+        nonce: nonce,
+        topic: QUIZ_TOPIC,
+        stats: JSON.stringify(stats),
+        question_details: JSON.stringify(questionDetails),
+        timer_duration: TIMER_DURATION
+    };
+    
+    // Send AJAX request
+    fetch('<?php echo admin_url("admin-ajax.php"); ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // Redirect to the test result page
+            window.location.href = result.data.permalink;
+        } else {
+            console.error('Failed to save test result:', result.data);
+            // Fallback: show results locally
+            const resultsHTML = generateResultsHTML(stats);
+            document.getElementById('quizContainer').innerHTML = resultsHTML;
+        }
+    })
+    .catch(error => {
+        console.error('Error saving test result:', error);
+        // Fallback: show results locally
+        const resultsHTML = generateResultsHTML(stats);
+        document.getElementById('quizContainer').innerHTML = resultsHTML;
+    });
 }
 
 function calculateStatistics() {

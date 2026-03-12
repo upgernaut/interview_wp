@@ -33,15 +33,3 @@ add_shortcode('interview_test', function ($atts) {
     include plugin_dir_path(__FILE__) . '../templates/quiz-template.php';
     return ob_get_clean();
 });
-
-add_action('wp_ajax_quiz_reset', 'quiz_reset_handler');
-add_action('wp_ajax_nopriv_quiz_reset', 'quiz_reset_handler');
-
-function quiz_reset_handler() {
-    session_start();
-    $topic = sanitize_text_field($_POST['topic'] ?? '');
-    if ($topic) {
-        unset($_SESSION['quiz_order_' . $topic]);
-    }
-    wp_send_json_success();
-}
