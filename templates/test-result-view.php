@@ -179,12 +179,6 @@ $guest_id = get_post_meta($post->ID, '_guest_id', true);
                     <?php else: ?>
                         <div class="alert alert-warning">No test data available.</div>
                     <?php endif; ?>
-                    
-                    <div class="text-center mt-4">
-                        <a href="<?= get_site_url() ?>/full-screen-quiz/?topic=<?= esc_attr($topic) ?>&timer=<?= esc_attr($timer_duration) ?>&random=1&reset=1" 
-                           class="btn btn-primary btn-lg">Retake Test</a>
-                        <!-- <a href="<?= get_site_url() ?>" class="btn btn-secondary btn-lg">Back to Home</a> -->
-                    </div>
                 </div>
             </div>
         </div>
@@ -281,9 +275,16 @@ function generateResultsHTML($questionDetails) {
     $html .= '<div style="font-size: 1.2rem; font-weight: normal;">' . $scoreMessage . '</div>';
     $html .= '</div>';
     
+    // Add Retake Test button right after score
+    global $topic, $timer_duration;
+    $html .= '<div class="text-center my-4">';
+    $html .= '<a href="' . get_site_url() . '/full-screen-quiz/?topic=' . esc_attr($topic) . '&timer=' . esc_attr($timer_duration) . '&random=1&reset=1" ';
+    $html .= 'class="btn btn-primary btn-lg">Retake Test</a>';
+    $html .= '</div>';
+    
     // Detailed question list
     $html .= '<div class="card">';
-    $html .= '<div class="card-header"><h3>Question Details</h3></div>';
+    $html .= '<div class="card-header"><h3>Advanced Test Details</h3></div>';
     $html .= '<div class="card-body">';
     
     if (!empty($questionDetails)) {
