@@ -5,6 +5,78 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
 ?>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+.answer-status-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.answer-btn {
+    min-width: 160px;
+    position: relative;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.answer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.answer-btn.selected {
+    border-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.3);
+    transform: scale(1.05);
+}
+
+.answer-btn.btn-danger.selected {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.answer-btn.btn-warning.selected {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+}
+
+.answer-btn.btn-success.selected {
+    background: linear-gradient(135deg, #28a745, #218838);
+}
+
+.score-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 20px 0;
+    transition: all 0.3s ease;
+}
+
+.score-excellent {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+}
+
+.score-good {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: white;
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+}
+
+.score-poor {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    color: white;
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+}
+
+#nextButton:disabled:hover {
+    cursor: not-allowed;
+}
+</style>
 
 <div id="quizContainer">
 <?php 
@@ -38,9 +110,15 @@ foreach ($items as $key => $post_id):
 
         <div class="col-12 mt-3">
             <div class="answer-status-buttons">
-                <button class="btn btn-danger answer-btn" data-status="didn't-answer" data-question-id="<?php echo $key; ?>">Didn't answer</button>
-                <button class="btn btn-warning answer-btn" data-status="somewhat-answered" data-question-id="<?php echo $key; ?>">Somewhat answered</button>
-                <button class="btn btn-success answer-btn" data-status="answered" data-question-id="<?php echo $key; ?>">Answered</button>
+                <button class="btn answer-btn btn-danger" data-status="didn't-answer" data-question-id="<?php echo $key; ?>">
+                    <i class="fas fa-times"></i> Didn't answer
+                </button>
+                <button class="btn answer-btn btn-warning" data-status="somewhat-answered" data-question-id="<?php echo $key; ?>">
+                    <i class="fas fa-minus"></i> Somewhat answered
+                </button>
+                <button class="btn answer-btn btn-success" data-status="answered" data-question-id="<?php echo $key; ?>">
+                    <i class="fas fa-check"></i> Answered
+                </button>
             </div>
         </div>
 
@@ -52,7 +130,7 @@ foreach ($items as $key => $post_id):
 <div class="mt-3 text-center">
     <div id="timer" style="font-size:24px; font-weight:bold; margin-bottom:10px;"></div>
     <button id="prevButton" class="btn btn-secondary mx-2">Prev question</button>
-    <button id="nextButton" class="btn btn-primary mx-2" disabled>Next question</button>
+    <button id="nextButton" class="btn btn-primary mx-2" disabled title="Please select an answer option to continue">Next question</button>
     <button id="resetButton" class="btn btn-danger mx-2">Reset</button>
 </div>
 
@@ -164,9 +242,9 @@ function updateAnswerButtons() {
     const buttons = orderedQuestions[currentQuestion].querySelectorAll('.answer-btn');
     
     buttons.forEach(btn => {
-        btn.classList.remove('btn-outline-danger', 'btn-outline-warning', 'btn-outline-success');
+        btn.classList.remove('selected');
         if (answerStatus[questionId] === btn.dataset.status) {
-            btn.classList.add('btn-outline-' + btn.classList[1].replace('btn-', ''));
+            btn.classList.add('selected');
         }
     });
 }
@@ -249,11 +327,15 @@ function calculateStatistics() {
     const somewhat = Object.values(answerStatus).filter(s => s === 'somewhat-answered').length;
     const didnt = Object.values(answerStatus).filter(s => s === "didn't-answer").length;
     
+    // Calculate score: answered = 100%, somewhat = 60%, didn't answer = 0%
+    const score = total > 0 ? Math.round(((answered * 100) + (somewhat * 60)) / total) : 0;
+    
     return {
         total,
         answered,
         somewhat,
         didnt,
+        score,
         answeredPercent: total > 0 ? Math.round((answered / total) * 100) : 0,
         somewhatPercent: total > 0 ? Math.round((somewhat / total) * 100) : 0,
         didntPercent: total > 0 ? Math.round((didnt / total) * 100) : 0
@@ -272,7 +354,18 @@ function generateResultsHTML(stats) {
     html += '<div class="col-md-3 text-center"><div class="badge bg-warning fs-6">' + stats.somewhat + '</div><br>Somewhat answered<br><small>' + stats.somewhatPercent + '%</small></div>';
     html += '<div class="col-md-3 text-center"><div class="badge bg-danger fs-6">' + stats.didnt + '</div><br>Didn\'t answer<br><small>' + stats.didntPercent + '%</small></div>';
     html += '<div class="col-md-3 text-center"><div class="badge bg-primary fs-6">' + stats.total + '</div><br>Total questions</div>';
-    html += '</div></div></div>';
+    html += '</div>';
+    
+    // Add score display
+    const scoreClass = stats.score >= 80 ? 'score-excellent' : stats.score >= 50 ? 'score-good' : 'score-poor';
+    const scoreMessage = stats.score >= 80 ? 'Excellent!' : stats.score >= 50 ? 'Good Job!' : 'Keep Practicing!';
+    
+    html += '<div class="score-display ' + scoreClass + '">';
+    html += '<div>' + stats.score + '%</div>';
+    html += '<div style="font-size: 1.2rem; font-weight: normal;">' + scoreMessage + '</div>';
+    html += '</div>';
+    
+    html += '</div></div>';
     
     // Detailed question list
     html += '<div class="card">';
@@ -288,24 +381,28 @@ function generateResultsHTML(stats) {
         
         let statusBadge = '';
         let statusClass = '';
+        let statusIcon = '';
         
         switch(status) {
             case 'answered':
                 statusBadge = 'Answered';
                 statusClass = 'bg-success';
+                statusIcon = '<i class="fas fa-check"></i> ';
                 break;
             case 'somewhat-answered':
                 statusBadge = 'Somewhat answered';
                 statusClass = 'bg-warning';
+                statusIcon = '<i class="fas fa-minus"></i> ';
                 break;
             default:
                 statusBadge = "Didn't answer";
                 statusClass = 'bg-danger';
+                statusIcon = '<i class="fas fa-times"></i> ';
         }
         
         html += '<div class="mb-2 p-2 border rounded">';
         html += '<strong>' + (index + 1) + '. ' + questionText + '</strong> - ';
-        html += '<span class="badge ' + statusClass + '">' + statusBadge + '</span> - ';
+        html += '<span class="badge ' + statusClass + '">' + statusIcon + statusBadge + '</span> - ';
         
         if (isOvertime) {
             html += '<span class="badge bg-secondary">Overtime: ' + timing + 's</span>';
