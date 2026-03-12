@@ -181,9 +181,9 @@ $guest_id = get_post_meta($post->ID, '_guest_id', true);
                     <?php endif; ?>
                     
                     <div class="text-center mt-4">
-                        <a href="<?= get_site_url() ?>/full-screen-quiz/?topic=<?= esc_attr($topic) ?>&timer=<?= esc_attr($timer_duration) ?>&random=1" 
+                        <a href="<?= get_site_url() ?>/full-screen-quiz/?topic=<?= esc_attr($topic) ?>&timer=<?= esc_attr($timer_duration) ?>&random=1&reset=1" 
                            class="btn btn-primary btn-lg">Retake Test</a>
-                        <a href="<?= get_site_url() ?>" class="btn btn-secondary btn-lg">Back to Home</a>
+                        <!-- <a href="<?= get_site_url() ?>" class="btn btn-secondary btn-lg">Back to Home</a> -->
                     </div>
                 </div>
             </div>

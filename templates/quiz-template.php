@@ -210,7 +210,19 @@ const timerEl = document.getElementById('timer');
 
 const QUIZ_TOPIC = "<?= esc_js($atts['topic']) ?>";
 const TIMER_DURATION = <?= $TIMER_DURATION ?>;
-const QUIZ_RANDOM = <?= (int)$atts['random'] ?>;
+const QUIZ_RANDOM = <?= $atts['random'] ?>;
+
+// Check for reset parameter and clear state
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('reset') === '1') {
+    localStorage.removeItem('quiz_idx_' + QUIZ_TOPIC);
+    localStorage.removeItem('quiz_order_' + QUIZ_TOPIC);
+    localStorage.removeItem('quiz_answers_' + QUIZ_TOPIC);
+    localStorage.removeItem('quiz_timing_' + QUIZ_TOPIC);
+    // Remove reset parameter from URL
+    const newUrl = window.location.pathname + window.location.search.replace(/[?&]reset=1/, '');
+    window.history.replaceState({}, '', newUrl);
+}
 
 const STORAGE_IDX_KEY   = 'quiz_idx_' + QUIZ_TOPIC;
 const STORAGE_ORDER_KEY = 'quiz_order_' + QUIZ_TOPIC;
