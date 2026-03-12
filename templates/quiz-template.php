@@ -192,8 +192,9 @@ foreach ($items as $key => $post_id):
 </div>
 
 <div class="mt-3 text-center">
-    <div id="timer" style="font-size:24px; font-weight:bold; margin-bottom:10px;"></div>
-    <div style="display: flex; justify-content: center;">
+    <div id="timer" style="font-size:24px; font-weight:bold; margin-bottom:10px; "></div>
+    <div style="display: flex; justify-content: center; flex-wrap: wrap;
+    gap: 5px;">
         <div><button id="prevButton" class="btn btn-secondary mx-2">Prev question</button></div>
         <div class="tooltip-wrapper" data-tooltip="Please select an answer option to continue"><button id="nextButton" class="btn btn-primary mx-2 tooltip-custom" disabled>Next question</button></div>
         <div><button id="resetButton" class="btn btn-danger mx-2">Reset</button></div>
