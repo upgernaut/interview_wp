@@ -257,20 +257,44 @@ add_action('add_meta_boxes', function() {
         'test_result_stats',
         'Test Statistics',
         function($post) {
-            $stats = get_post_meta($post->ID, '_test_stats', true);
-            $total = $stats['total'] ?? 0;
-            $answered = $stats['answered'] ?? 0;
-            $somewhat = $stats['somewhat'] ?? 0;
-            $didnt = $stats['didnt'] ?? 0;
-            $score = $stats['score'] ?? 0;
+            $details = get_post_meta($post->ID, '_test_question_details', true);
+            
+            // Calculate statistics from question details
+            $total = count($details);
+            $answered = 0;
+            $somewhat = 0;
+            $didnt = 0;
+            
+            if (!empty($details) && is_array($details)) {
+                foreach ($details as $detail) {
+                    $status = $detail['status'] ?? "didn't-answer";
+                    if ($status === 'answered') {
+                        $answered++;
+                    } elseif ($status === 'somewhat-answered') {
+                        $somewhat++;
+                    } else {
+                        $didnt++;
+                    }
+                }
+            }
+            
+            // Calculate percentages
+            $answeredPercent = $total > 0 ? round(($answered / $total) * 100) : 0;
+            $somewhatPercent = $total > 0 ? round(($somewhat / $total) * 100) : 0;
+            $didntPercent = $total > 0 ? round(($didnt / $total) * 100) : 0;
+            
+            // Calculate score: answered = 100%, somewhat = 60%, didn't answer = 0%
+            $score = $total > 0 ? round((($answered * 100) + ($somewhat * 60)) / $total) : 0;
             
             echo '<table class="form-table">';
-            echo '<tr><th>Total Questions</th><td><input type="number" name="test_stats[total]" value="' . esc_attr($total) . '" min="0" /></td></tr>';
-            echo '<tr><th>Answered</th><td><input type="number" name="test_stats[answered]" value="' . esc_attr($answered) . '" min="0" /></td></tr>';
-            echo '<tr><th>Somewhat Answered</th><td><input type="number" name="test_stats[somewhat]" value="' . esc_attr($somewhat) . '" min="0" /></td></tr>';
-            echo '<tr><th>Didn\'t Answer</th><td><input type="number" name="test_stats[didnt]" value="' . esc_attr($didnt) . '" min="0" /></td></tr>';
-            echo '<tr><th>Score (%)</th><td><input type="number" name="test_stats[score]" value="' . esc_attr($score) . '" min="0" max="100" /></td></tr>';
+            echo '<tr><th>Total Questions</th><td>' . $total . '</td></tr>';
+            echo '<tr><th>Answered</th><td>' . $answered . ' (' . $answeredPercent . '%)</td></tr>';
+            echo '<tr><th>Somewhat Answered</th><td>' . $somewhat . ' (' . $somewhatPercent . '%)</td></tr>';
+            echo '<tr><th>Didn\'t Answer</th><td>' . $didnt . ' (' . $didntPercent . '%)</td></tr>';
+            echo '<tr><th>Score (%)</th><td>' . $score . '</td></tr>';
             echo '</table>';
+            
+            echo '<p><em><strong>Note:</strong> These statistics are automatically calculated from the Question Details below.</em></p>';
             
             wp_nonce_field('save_test_result_meta', 'test_result_meta_nonce');
         },
@@ -357,26 +381,7 @@ add_action('save_post', function($post_id) {
         $post_type = get_post_type($post_id);
         
         if ($post_type === 'iq_test_result') {
-            // Save statistics
-            if (isset($_POST['test_stats'])) {
-                $stats = array_map('intval', $_POST['test_stats']);
-                
-                // Calculate percentages
-                $total = $stats['total'] ?? 0;
-                if ($total > 0) {
-                    $stats['answeredPercent'] = round(($stats['answered'] / $total) * 100);
-                    $stats['somewhatPercent'] = round(($stats['somewhat'] / $total) * 100);
-                    $stats['didntPercent'] = round(($stats['didnt'] / $total) * 100);
-                } else {
-                    $stats['answeredPercent'] = 0;
-                    $stats['somewhatPercent'] = 0;
-                    $stats['didntPercent'] = 0;
-                }
-                
-                update_post_meta($post_id, '_test_stats', $stats);
-            }
-            
-            // Save question details
+            // Save question details and calculate statistics
             if (isset($_POST['question_details'])) {
                 $question_details = [];
                 foreach ($_POST['question_details'] as $index => $detail) {
@@ -390,6 +395,44 @@ add_action('save_post', function($post_id) {
                     }
                 }
                 update_post_meta($post_id, '_test_question_details', $question_details);
+                
+                // Calculate and save statistics based on question details
+                $total = count($question_details);
+                $answered = 0;
+                $somewhat = 0;
+                $didnt = 0;
+                
+                foreach ($question_details as $detail) {
+                    $status = $detail['status'] ?? "didn't-answer";
+                    if ($status === 'answered') {
+                        $answered++;
+                    } elseif ($status === 'somewhat-answered') {
+                        $somewhat++;
+                    } else {
+                        $didnt++;
+                    }
+                }
+                
+                // Calculate percentages
+                $answeredPercent = $total > 0 ? round(($answered / $total) * 100) : 0;
+                $somewhatPercent = $total > 0 ? round(($somewhat / $total) * 100) : 0;
+                $didntPercent = $total > 0 ? round(($didnt / $total) * 100) : 0;
+                
+                // Calculate score
+                $score = $total > 0 ? round((($answered * 100) + ($somewhat * 60)) / $total) : 0;
+                
+                $stats = [
+                    'total' => $total,
+                    'answered' => $answered,
+                    'somewhat' => $somewhat,
+                    'didnt' => $didnt,
+                    'answeredPercent' => $answeredPercent,
+                    'somewhatPercent' => $somewhatPercent,
+                    'didntPercent' => $didntPercent,
+                    'score' => $score
+                ];
+                
+                update_post_meta($post_id, '_test_stats', $stats);
             }
             
             // Save test information

@@ -174,8 +174,8 @@ $guest_id = get_post_meta($post->ID, '_guest_id', true);
                     </div>
                 </div>
                 <div class="card-body">
-                    <?php if (!empty($stats)): ?>
-                        <?= generateResultsHTML($stats, $question_details); ?>
+                    <?php if (!empty($question_details)): ?>
+                        <?= generateResultsHTML($question_details); ?>
                     <?php else: ?>
                         <div class="alert alert-warning">No test data available.</div>
                     <?php endif; ?>
@@ -192,8 +192,46 @@ $guest_id = get_post_meta($post->ID, '_guest_id', true);
 </div>
 
 <?php
-function generateResultsHTML($stats, $questionDetails) {
+function generateResultsHTML($questionDetails) {
     $html = '<h1 class="text-center text-success mb-4">🎉 Congratulations! You finished the quiz! 🎉</h1>';
+    
+    // Calculate statistics from question details
+    $total = count($questionDetails);
+    $answered = 0;
+    $somewhat = 0;
+    $didnt = 0;
+    
+    if (!empty($questionDetails) && is_array($questionDetails)) {
+        foreach ($questionDetails as $detail) {
+            $status = $detail['status'] ?? "didn't-answer";
+            if ($status === 'answered') {
+                $answered++;
+            } elseif ($status === 'somewhat-answered') {
+                $somewhat++;
+            } else {
+                $didnt++;
+            }
+        }
+    }
+    
+    // Calculate percentages
+    $answeredPercent = $total > 0 ? round(($answered / $total) * 100) : 0;
+    $somewhatPercent = $total > 0 ? round(($somewhat / $total) * 100) : 0;
+    $didntPercent = $total > 0 ? round(($didnt / $total) * 100) : 0;
+    
+    // Calculate score
+    $score = $total > 0 ? round((($answered * 100) + ($somewhat * 60)) / $total) : 0;
+    
+    $stats = [
+        'total' => $total,
+        'answered' => $answered,
+        'somewhat' => $somewhat,
+        'didnt' => $didnt,
+        'answeredPercent' => $answeredPercent,
+        'somewhatPercent' => $somewhatPercent,
+        'didntPercent' => $didntPercent,
+        'score' => $score
+    ];
     
     // General statistics
     $html .= '<div class="card mb-4">';
