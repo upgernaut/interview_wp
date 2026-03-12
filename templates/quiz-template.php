@@ -18,31 +18,49 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
 .answer-btn {
     min-width: 160px;
     position: relative;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-}
-
-.answer-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    border: 3px solid transparent;
+    font-weight: 500;
 }
 
 .answer-btn.selected {
-    border-color: #fff;
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.3);
-    transform: scale(1.05);
+    border-color: #212529;
+    border-width: 4px;
+    transform: scale(1.02); 
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .answer-btn.btn-danger.selected {
-    background: linear-gradient(135deg, #dc3545, #c82333);
+    background-color: #dc3545;
+    color: white;
 }
 
 .answer-btn.btn-warning.selected {
-    background: linear-gradient(135deg, #ffc107, #e0a800);
+    background-color: #ffc107;
+    color: #212529;
 }
 
 .answer-btn.btn-success.selected {
-    background: linear-gradient(135deg, #28a745, #218838);
+    background-color: #28a745;
+    color: white;
+}
+
+.answer-btn.selected::after {
+    content: '✓';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #212529;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 10;
 }
 
 .score-display {
@@ -52,7 +70,7 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
     border-radius: 15px;
     text-align: center;
     margin: 20px 0;
-    transition: all 0.3s ease;
+    /* transition: all 0.3s ease; */
 }
 
 .score-excellent {
@@ -75,6 +93,47 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
 
 #nextButton:disabled:hover {
     cursor: not-allowed;
+}
+
+.tooltip-custom {
+    position: relative;
+}
+
+.tooltip-custom::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #212529;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 1000;
+}
+
+.tooltip-custom::after {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #212529;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.tooltip-custom:hover::before,
+.tooltip-custom:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 </style>
 
@@ -130,7 +189,7 @@ foreach ($items as $key => $post_id):
 <div class="mt-3 text-center">
     <div id="timer" style="font-size:24px; font-weight:bold; margin-bottom:10px;"></div>
     <button id="prevButton" class="btn btn-secondary mx-2">Prev question</button>
-    <button id="nextButton" class="btn btn-primary mx-2" disabled title="Please select an answer option to continue">Next question</button>
+    <button id="nextButton" class="btn btn-primary mx-2 tooltip-custom" disabled data-tooltip="Please select an answer option to continue">Next question</button>
     <button id="resetButton" class="btn btn-danger mx-2">Reset</button>
 </div>
 
