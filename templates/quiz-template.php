@@ -99,7 +99,7 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
     position: relative;
 }
 
-.tooltip-custom::before {
+.tooltip-custom.disabled::before {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 125%;
@@ -117,7 +117,7 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
     z-index: 1000;
 }
 
-.tooltip-custom::after {
+.tooltip-custom.disabled::after {
     content: '';
     position: absolute;
     bottom: 115%;
@@ -130,8 +130,8 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
     transition: opacity 0.3s, visibility 0.3s;
 }
 
-.tooltip-custom:hover::before,
-.tooltip-custom:hover::after {
+.tooltip-custom.disabled:hover::before,
+.tooltip-custom.disabled:hover::after {
     opacity: 1;
     visibility: visible;
 }
@@ -310,7 +310,15 @@ function updateAnswerButtons() {
 
 function updateNextButtonState() {
     const questionId = orderedQuestions[currentQuestion].dataset.id;
-    nextButton.disabled = !answerStatus.hasOwnProperty(questionId);
+    const isDisabled = !answerStatus.hasOwnProperty(questionId);
+    nextButton.disabled = isDisabled;
+    
+    // Add/remove disabled class for tooltip
+    if (isDisabled) {
+        nextButton.classList.add('disabled');
+    } else {
+        nextButton.classList.remove('disabled');
+    }
 }
 
 
@@ -350,9 +358,10 @@ resetButton.onclick = () => {
 
 // Answer button click handlers
 document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('answer-btn')) {
-        const questionId = e.target.dataset.questionId;
-        const status = e.target.dataset.status;
+    if (e.target.classList.contains('answer-btn') || e.target.closest('.answer-btn')) {
+        const button = e.target.classList.contains('answer-btn') ? e.target : e.target.closest('.answer-btn');
+        const questionId = button.dataset.questionId;
+        const status = button.dataset.status;
         
         answerStatus[questionId] = status;
         localStorage.setItem(STORAGE_ANSWERS_KEY, JSON.stringify(answerStatus));
