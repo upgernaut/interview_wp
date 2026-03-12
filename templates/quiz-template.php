@@ -406,21 +406,18 @@ function generateResultsHTML(stats) {
     
     // General statistics
     html += '<div class="card mb-4">';
-    html += '<div class="card-header"><h3>General Statistics</h3></div>';
+    html += '<div class="card-header d-flex justify-content-between align-items-center">';
+    html += '<h3 class="mb-0">General Statistics</h3>';
+    html += '<span class="badge bg-primary fs-6">Total questions: ' + stats.total + '</span>';
+    html += '</div>';
     html += '<div class="card-body">';
-    html += '<div class="text-center mb-4">';
-    html += '<div class="d-inline-block text-center p-3 border rounded bg-light">';
-    html += '<div class="fw-bold fs-2 text-primary">' + stats.total + '</div>';
-    html += '<div class="text-muted">Total Questions</div>';
-    html += '</div>';
-    html += '</div>';
     html += '<div class="d-flex flex-column gap-3">';
     html += '<div class="stat-item">';
     html += '<div class="d-flex justify-content-between align-items-center mb-1">';
     html += '<span class="fw-semibold text-success">Answered</span>';
     html += '<span class="text-success fw-bold">' + stats.answered + ' (' + stats.answeredPercent + '%)</span>';
     html += '</div>';
-    html += '<div class="progress" style="height: 25px; background-color: #f8f9fa;">';
+    html += '<div class="progress" style="height: 20px; background-color: #f8f9fa;">';
     html += '<div class="progress-bar bg-success" style="width: ' + stats.answeredPercent + '%; border-radius: 4px;"></div>';
     html += '</div>';
     html += '</div>';
@@ -429,7 +426,7 @@ function generateResultsHTML(stats) {
     html += '<span class="fw-semibold text-warning">Somewhat Answered</span>';
     html += '<span class="text-warning fw-bold">' + stats.somewhat + ' (' + stats.somewhatPercent + '%)</span>';
     html += '</div>';
-    html += '<div class="progress" style="height: 25px; background-color: #f8f9fa;">';
+    html += '<div class="progress" style="height: 20px; background-color: #f8f9fa;">';
     html += '<div class="progress-bar bg-warning" style="width: ' + stats.somewhatPercent + '%; border-radius: 4px;"></div>';
     html += '</div>';
     html += '</div>';
@@ -438,7 +435,7 @@ function generateResultsHTML(stats) {
     html += '<span class="fw-semibold text-danger">Didn\'t Answer</span>';
     html += '<span class="text-danger fw-bold">' + stats.didnt + ' (' + stats.didntPercent + '%)</span>';
     html += '</div>';
-    html += '<div class="progress" style="height: 25px; background-color: #f8f9fa;">';
+    html += '<div class="progress" style="height: 20px; background-color: #f8f9fa;">';
     html += '<div class="progress-bar bg-danger" style="width: ' + stats.didntPercent + '%; border-radius: 4px;"></div>';
     html += '</div>';
     html += '</div>';
