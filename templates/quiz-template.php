@@ -95,6 +95,34 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
     cursor: not-allowed;
 }
 
+.helper-message {
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #6c757d;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.helper-message.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.button-container {
+    position: relative;
+    display: inline-block;
+}
+
 </style>
 
 <div id="quizContainer">
@@ -151,7 +179,10 @@ foreach ($items as $key => $post_id):
     <div style="display: flex; justify-content: center; flex-wrap: wrap;
     gap: 5px;">
         <div><button id="prevButton" class="btn btn-secondary mx-2">Prev question</button></div>
-        <div><button id="nextButton" class="btn btn-primary mx-2" disabled>Next question</button></div>
+        <div class="button-container">
+    <div class="helper-message" id="nextButtonHelper">Please select an answer option to continue</div>
+    <button id="nextButton" class="btn btn-primary mx-2" disabled>Next question</button>
+</div>
         <div><button id="resetButton" class="btn btn-danger mx-2">Reset</button></div>
     </div>
 </div>
@@ -162,6 +193,7 @@ const nextButton = document.getElementById('nextButton');
 const prevButton = document.getElementById('prevButton');
 const resetButton = document.getElementById('resetButton');
 const timerEl = document.getElementById('timer');
+const nextButtonHelper = document.getElementById('nextButtonHelper');
 
 const QUIZ_TOPIC = "<?= esc_js($atts['topic']) ?>";
 const TIMER_DURATION = <?= $TIMER_DURATION ?>;
@@ -275,6 +307,13 @@ function updateNextButtonState() {
     const questionId = orderedQuestions[currentQuestion].dataset.id;
     const isDisabled = !answerStatus.hasOwnProperty(questionId);
     nextButton.disabled = isDisabled;
+    
+    // Show helper message only when button is disabled
+    if (isDisabled) {
+        nextButtonHelper.classList.add('show');
+    } else {
+        nextButtonHelper.classList.remove('show');
+    }
 }
 
 
