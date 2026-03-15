@@ -92,7 +92,12 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
 }
 
 #nextButton:disabled:hover {
-    cursor: not-allowed;
+    /* cursor: not-allowed; */
+}
+
+.button-look-disabled {
+    opacity: 0.6;
+    /* cursor: not-allowed !important; */
 }
 
 .helper-message {
@@ -179,9 +184,11 @@ foreach ($items as $key => $post_id):
     <div style="display: flex; justify-content: center; flex-wrap: wrap;
     gap: 5px;">
         <div><button id="prevButton" class="btn btn-secondary mx-2">Prev question</button></div>
-        <div class="button-container">
-    <div class="helper-message" id="nextButtonHelper">Please select an answer option to continue</div>
-    <button id="nextButton" class="btn btn-primary mx-2" disabled>Next question</button>
+        <div id="nextButtonWrapper" class="button-wrapper">
+    <div class="button-container">
+        <div class="helper-message" id="nextButtonHelper">Please select an answer option to continue</div>
+        <button id="nextButton" class="btn btn-primary mx-2">Next question</button>
+    </div>
 </div>
         <div><button id="resetButton" class="btn btn-danger mx-2">Reset</button></div>
     </div>
@@ -194,6 +201,7 @@ const prevButton = document.getElementById('prevButton');
 const resetButton = document.getElementById('resetButton');
 const timerEl = document.getElementById('timer');
 const nextButtonHelper = document.getElementById('nextButtonHelper');
+const nextButtonWrapper = document.getElementById('nextButtonWrapper');
 
 const QUIZ_TOPIC = "<?= esc_js($atts['topic']) ?>";
 const TIMER_DURATION = <?= $TIMER_DURATION ?>;
@@ -306,13 +314,17 @@ function updateAnswerButtons() {
 function updateNextButtonState() {
     const questionId = orderedQuestions[currentQuestion].dataset.id;
     const isDisabled = !answerStatus.hasOwnProperty(questionId);
-    nextButton.disabled = isDisabled;
     
-    // Show helper message only when button is disabled
+    // Store disabled state in data attribute instead of disabled property
+    nextButton.dataset.disabled = isDisabled;
+    
+    // Update visual appearance
     if (isDisabled) {
-        nextButtonHelper.classList.add('show');
+        nextButton.classList.add('button-look-disabled');
+        nextButton.disabled = false; // Keep button functionally enabled
     } else {
-        nextButtonHelper.classList.remove('show');
+        nextButton.classList.remove('button-look-disabled');
+        nextButton.disabled = false;
     }
 }
 
@@ -321,6 +333,16 @@ function updateNextButtonState() {
 // Next / Prev / Reset
 // ----------------------
 nextButton.onclick = () => {
+    // Check if button is visually disabled
+    if (nextButton.dataset.disabled === 'true') {
+        nextButtonHelper.classList.add('show');
+        // Hide message after 3 seconds
+        setTimeout(() => {
+            nextButtonHelper.classList.remove('show');
+        }, 3000);
+        return; // Don't proceed
+    }
+    
     clearInterval(timerInterval);
     recordQuestionTiming(orderedQuestions[currentQuestion].dataset.id);
     
