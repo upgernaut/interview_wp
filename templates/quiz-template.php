@@ -95,51 +95,6 @@ $TIMER_DURATION = isset($atts['timer']) ? (int)$atts['timer'] : 15;
     cursor: not-allowed;
 }
 
-.tooltip-custom {
-    position: relative;
-}
-
-.tooltip-wrapper.disabled::before {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #212529;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
-    z-index: 1000;
-}
-
-.tooltip-wrapper.disabled::after {
-    content: '';
-    position: absolute;
-    bottom: 115%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: #212529;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
-}
-
-.tooltip-wrapper.disabled:hover::before,
-.tooltip-wrapper.disabled:hover::after {
-    opacity: 1;
-    visibility: visible;
-}
-
-.tooltip-wrapper {
-    position: relative;
-    display: inline-block;
-}
 </style>
 
 <div id="quizContainer">
@@ -196,7 +151,7 @@ foreach ($items as $key => $post_id):
     <div style="display: flex; justify-content: center; flex-wrap: wrap;
     gap: 5px;">
         <div><button id="prevButton" class="btn btn-secondary mx-2">Prev question</button></div>
-        <div class="tooltip-wrapper" data-tooltip="Please select an answer option to continue"><button id="nextButton" class="btn btn-primary mx-2 tooltip-custom" disabled>Next question</button></div>
+        <div><button id="nextButton" class="btn btn-primary mx-2" disabled>Next question</button></div>
         <div><button id="resetButton" class="btn btn-danger mx-2">Reset</button></div>
     </div>
 </div>
@@ -320,14 +275,6 @@ function updateNextButtonState() {
     const questionId = orderedQuestions[currentQuestion].dataset.id;
     const isDisabled = !answerStatus.hasOwnProperty(questionId);
     nextButton.disabled = isDisabled;
-    
-    // Add/remove disabled class for tooltip on wrapper
-    const wrapper = nextButton.parentElement;
-    if (isDisabled) {
-        wrapper.classList.add('disabled');
-    } else {
-        wrapper.classList.remove('disabled');
-    }
 }
 
 
